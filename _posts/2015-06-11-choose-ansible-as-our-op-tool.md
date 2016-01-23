@@ -3,7 +3,7 @@ layout: default
 title: 初创公司的配置工具选型
 date: 2015-06-11
 categories: 高可用运维
-tags: [ansible, op-tools]
+tags: [HA, ansible, op-tools]
 ---
 
 # 初创公司的配置管理工具选型
