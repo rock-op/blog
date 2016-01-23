@@ -5,10 +5,10 @@
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<title>现在适合用主干开发吗？ — 谈敏捷对团队的要求</title>
-	<meta name="description" content="现在适合用主干开发吗？ — 谈敏捷对团队的要求">
+	<title>nginx ip_hash转发至一台机器</title>
+	<meta name="description" content="问题描述阿里云nginx ip_hash将所有请求转发到了一台机器，即使upstream后端配置了多台tomcat server">
 	
-	<link rel="canonical" href="/blog//2015/11/18/is-time-for-single-branch-devolop/">
+	<link rel="canonical" href="/blog//2015/10/26/nginx-ip-hash-only-one-backend-server/">
 	<link rel="alternate" type="application/rss+xml" title="RockGuo" href="/blog//feed.xml" />
 	
 	<!-- <link rel="stylesheet" href="/blog//css/main.css"> -->
@@ -92,67 +92,39 @@
 
 
     <div id="main" class="container main">
-      <h1 id="section">现在适合用主干开发吗？ — 谈敏捷对团队的要求</h1>
+      <h2 id="section">问题描述</h2>
+<p>阿里云nginx ip_hash将所有请求转发到了一台机器，即使upstream后端配置了多台tomcat server</p>
 
-<h2 id="section-1">一、题记：</h2>
+<h2 id="section-1">排查过程</h2>
+<p>查看nginx的error.log, 发现大部分的client ip是来自于10.aaa.bbb网段</p>
 
-<p>凡是脱离现状谈敏捷，都是耍流氓。</p>
+<blockquote>
+  <p>2015/10/25 12:01:03 [warn] 21580#0: *12412231 an upstream response is buffered to a temporary file /home/work/nginx/proxy_temp/2/55/0000075552 while reading upstream, client: 10.aaa.bbb.ccc, server: …</p>
+</blockquote>
 
-<h2 id="section-2">二、主干开发，持续集成</h2>
+<p>怀疑nginx未获取到真实的用户ip，而获取到上游SLB集群的IP。</p>
 
-<p>敏捷/持续交付中『鼓吹』或『鼓励』的一种开发模式实践。
-『研发人员持续地、小规模地、以功能点为粒度，将代码合并到主干，始终保证主干是可发布的状态；整体项目发布时，从主干上拉取上线分支；上线后的bugfix在上线分支上修改，验证通过后合并回主干』
-从模式上来说，的确是一种先进的思路，并在很多公司有很好的实践。
-但别人能，你（现在）是不是也一样能? 这个问题需要考虑，毕竟，持续交付对于产品、研发、测试、部署都是有较为严格的要求。就好比，共产主义是个好想法，但现在适不适合我们?
-在对持续集成的实践过程中，从无序到有序，更深刻地体会到敏捷对整个团队的要求。反思记录如下，方向一定是对的，路要一步一步走。</p>
+<p>nginx官方网站中关于ip_hash的说明</p>
 
-<h2 id="section-3">三、敏捷对团队的要求</h2>
+<blockquote>
+  <p>Specifies that a group should use a load balancing method where requests are distributed between servers based on client IP addresses. The first three octets of the client IPv4 address, or the entire IPv6 address, are used as a hashing key. The method ensures that requests from the same client will always be passed to the same server except when this server is unavailable. In the latter case client requests will be passed to another server. Most probably, it will always be the same server as well.</p>
+</blockquote>
 
-<ol>
-  <li>
-    <p>对产品需求</p>
+<p>意思是，对于IPv4，ip_hash会使用IP的前3部分作为哈希的Key，一个SLB集群对应的网段都是一致的，导致ip_hash之后的请求全部落到一台upstream机器。</p>
 
-    <p>首先，需求要收敛。</p>
-
-    <p>其次，迭代周期要差不多固定。</p>
-
-    <p>最后，需求有明确的验证条件。</p>
-
-    <p>原则上，迭代周期内需求不可以变化。需要定期交付。</p>
-  </li>
-  <li>
-    <p>对研发
-由于集成（合并代码）是一件痛苦的事情，所以我们需要持续地小规模地做。这句话没错，但不要忽略一点，就是『代码质量』。
-主干开发，如何保证提交到trunk上的代码是高质量的? 有没有写单元测试? 有没有做系统测试? 有没有做Code Review?
-全部都没有的话，代码质量怎么保证?
-质量都保证不了的代码，怎么能被提交到主干上呢?
-另外，提交代码到仓库(svn/git)后，是否可以自动化、集中地做编译、打包、部署测试环境? 是否使用版本管理发布包，如何维护发布包与源码之间的对应关系?</p>
-  </li>
-  <li>
-    <p>对测试
-你们的QA是黑盒测试还是白盒测试? 有没有自动化测试用例?
-理想情况下，在迭代开始的时候，RD针对功能点开发代码，QA针对功能点开发自动化测试用例，并与PM, RD确定测试用例的覆盖情况。大家以功能点粒度交付验证，流水作业。
-如果QA只是做黑盒测试，那势必要等有『盒』之后才能介入测试，介入较晚。另外，没有自动化用例，会导致整体功能回归工作量过大，时间过长，进而导致测试用例覆盖面太小的情况。</p>
-  </li>
-  <li>
-    <p>对运维
-是否可以自动化部署? 是否可以全量发布（相对于增量发布）? 如果部署过程中发生异常，是否能及时/自动中止部署过程?</p>
-  </li>
-  <li>
-    <p>对协作模式
-整个项目的进度是否可视化，是否能及时发现延期的风险? 谁是瓶颈点?</p>
-  </li>
-</ol>
-
-<h2 id="section-4">四、结语</h2>
-
-<p>上面的疑问如果大部分都是『是』，恭喜你，你们的交付过程应该会比较顺畅，承诺的交付也少有延期的情况。</p>
-
-<p>如果大部分上面的要求做不到，尤其是对研发的要求，现在没法做到的话，建议：</p>
+<h2 id="section-2">解决方案</h2>
+<p>让nginx获取到用户的真实IP，使用real client ip做ip_hash</p>
 
 <ol>
-  <li>暂时采用『分支开发，主干上线』的模式，尽量保证主干代码的可发布性。集成（合并代码）会比较痛苦，需要提前预留出集成的时间。</li>
-  <li>逐步达到上面的要求，尤其是对代码质量的要求。</li>
+  <li>重新编译nginx, 增加–with-http_realip_module模块</li>
+  <li>在nginx.conf中http{}中，增加
+<code class="highlighter-rouge">
+real_ip_header X-Forwarded-For;
+set_real_ip_from 0.0.0.0/0;
+real_ip_recursive on;
+</code></li>
+  <li>重启nginx，查看error.log检查client: 对应日志，已经变成了用户真实的外网出口IP</li>
+  <li>检查upstream的机器流量，已趋于均衡</li>
 </ol>
 
     </div>
