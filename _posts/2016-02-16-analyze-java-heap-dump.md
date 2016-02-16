@@ -22,7 +22,7 @@ Heap dump file created [1082759390 bytes in 22.848 secs]
 
 用MemoryAnalyzer分析生成的heapDump文件，使用dominator_tree, 点开之后
 
-![dominator_tree](https://github.com/rock-op/blog/blob/gh-pages/_images/Eclipse_Memory_Analyzer_hprof.jpg?raw=true)
+<img src="https://github.com/rock-op/blog/blob/gh-pages/_images/Eclipse_Memory_Analyzer_hprof.jpg?raw=true" width="500" height="300" alt="dominator_tree"/>
 
 发现是服务创建了9万多个LinkedList对象，每个对象大小有10K，将近1个G。
 
@@ -38,6 +38,16 @@ java.io.EOFException
     at java.lang.Thread.run(Thread.java:745)
 ```
 
-是抛出的Exception，但为什么Exception Logs没有打到日志文件中，反而存在内存的LinkedList中呢? 进入日志目录发现，服务日志的权限被改成了root，使用work启动的服务写不进去，就一直堆积在内存中，并且无法被GC掉。
+是抛出的Exception，但为什么Exception Logs没有打到日志文件中，反而存在内存的LinkedList中呢? 进入日志目录发现，服务日志的权限被改成了root，使用work启动的服务写不进去。
 
-将日志权限改回work，重启服务，检查日志滚动已经恢复正常。
+所以完整的原因应该是，
+
+1. 服务出现大量Exception
+1. 正常逻辑是Exception信息存储于LinkedList，刷到磁盘之后从LinkedList中删掉
+1. 但因为服务日志权限问题，异常日志无法写入磁盘，一直堆积在内存中，无法被GC掉。
+
+但这个EOFException在重启之后就没有了，怀疑是在Eden区域没有足够内存，导致有用户请求过来时，请求的内容被截断了。
+
+另外，从GC日志中发现，从2.4就已经有频繁的Full GC了，每分钟有3次Full GC。
+
+将日志权限改回work，重启服务，检查日志滚动已经恢复正常。针对于这个EOFException，后续再观察。
