@@ -38,6 +38,11 @@ java.io.EOFException
     at java.lang.Thread.run(Thread.java:745)
 ```
 
+EOFException什么意思呢，从官方文档上来看，当写入时，意外地到达了文件/流的末尾。
+
+> Signals that an end of file or end of stream has been reached unexpectedly during input.
+> This exception is mainly used by data input streams to signal end of stream. Note that many other input operations return a special value on end of stream rather than throwing an exception.
+
 是抛出的Exception，但为什么Exception Logs没有打到日志文件中，反而存在内存的LinkedList中呢? 进入日志目录发现，服务日志的权限被改成了root，使用work启动的服务写不进去。
 
 所以完整的原因应该是，
