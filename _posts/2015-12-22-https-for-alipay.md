@@ -2,7 +2,7 @@
 layout: default
 title: 支付宝支持的开发者SSL证书 
 date: 2015-12-22
-categories: 高可用架构
+categories: 高可用
 tags: [https, alipay]
 ---
 

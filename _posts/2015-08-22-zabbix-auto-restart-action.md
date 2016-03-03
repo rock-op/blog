@@ -2,7 +2,7 @@
 layout: default
 title:  zabbix实践：服务异常后自动执行预案 
 date: 2015-08-22
-categories: 高可用架构
+categories: 高可用
 tags: [zabbix, HA, stability]
 ---
 

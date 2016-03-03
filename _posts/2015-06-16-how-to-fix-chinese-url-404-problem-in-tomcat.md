@@ -2,7 +2,7 @@
 layout: default
 title: 解决tomcat中文URL乱码问题
 date: 2015-06-16
-categories: 高可用运维
+categories: 高可用
 tags: [HA, tomcat, locale]
 ---
 

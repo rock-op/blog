@@ -2,7 +2,7 @@
 layout: default
 title: 服务稳定性提升工作
 date: 2016-01-23
-categories: 高可用架构
+categories: 高可用
 tags: [HA, stability]
 ---
 

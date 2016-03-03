@@ -2,7 +2,7 @@
 layout: default
 title: 故障追查，分析java heap dump
 date: 2016-02-16
-categories: 高可用架构
+categories: 高可用
 tags: [java, HA, stability, Memory Analyzer]
 ---
 

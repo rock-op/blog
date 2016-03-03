@@ -2,7 +2,7 @@
 layout: default
 title: 系统nproc参数过小导致Resource temporarily unavailable 
 date: 2015-10-19
-categories: 高可用架构
+categories: 高可用
 tags: [nproc, HA]
 ---
 

@@ -2,7 +2,7 @@
 layout: default
 title: nginx ip_hash转发至一台机器
 date: 2015-10-26
-categories: 高可用架构
+categories: 高可用
 tags: [nginx, HA, stability]
 ---
 
