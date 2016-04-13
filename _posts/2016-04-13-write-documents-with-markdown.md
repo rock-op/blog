@@ -1,7 +1,7 @@
 ---
 layout: default
 title: 用jekyll + markdown写文档 
-date: 2016-03-24
+date: 2016-04-13
 categories: 职业生涯
 tags: [career]
 ---
